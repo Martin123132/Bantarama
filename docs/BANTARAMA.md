@@ -14,12 +14,21 @@ step.
 3. Add at least two players.
 4. Follow the traffic-light readiness guide.
 5. Start a round.
+6. Read the beat buttons out loud.
+7. Vote, or in a two-player game choose how the duel ruling lands.
 
 Use **Demo Game** on the first screen when you want to see a ready-to-play table
 before adding your own names and in-jokes.
 
 Use **Packs** to load a built-in table style or save your current names,
 phrases, objects, places, rules, and setup as a reusable local pack.
+
+Two-player games use **Duel Rulings**. The point can go to the accused, the
+accuser, Everyone, The House, or The Relic, which keeps awkward votes funny
+instead of forced.
+
+After a round, use reaction buttons to nudge the next one: **Too Normal**,
+**Too Much**, **Again But Harsher**, or **This Energy Works**.
 
 If Windows says Python is missing, install Python 3.10 or newer from:
 

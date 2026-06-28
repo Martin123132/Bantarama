@@ -19,6 +19,7 @@ MODES = [
 PRIMES = [11, 13, 17, 19, 23, 29, 31, 37]
 DRIFTS = ["preserve", "fragment", "distort", "invert", "amplify", "misremember"]
 COLLISIONS = ["accusation", "new_rule", "betrayal", "committee", "confession", "public_vote"]
+SPECIAL_SCORE_LABELS = ["The House", "The Relic"]
 TABLE_ACTIONS = [
     "The host reads the accusation once, then points at the accused without explaining.",
     "Everyone gets ten seconds to make the object sound guilty.",
@@ -318,6 +319,8 @@ def generate_round(state: dict[str, Any], options: dict[str, Any] | None = None)
     sting = _format(rng.choice(MODE_STINGS[mode]), data)
     escalation = _escalation(mode, rng, player, other, relic, phrase, drift, collision, weirdness)
     decision = _decision(rng, collision, player, other, relic, house_rule)
+    if len(players) == 2:
+        decision = _duel_decision(rng, collision, player, other, relic)
     callback, callback_kind = _callback_target(rng, state, player, other, relic, phrase)
     callback_line = _callback_line(rng, callback, callback_kind)
     table_action = _table_action(mode, rng, player, other, relic, phrase, collision)
@@ -362,6 +365,17 @@ def generate_round(state: dict[str, Any], options: dict[str, Any] | None = None)
     ]
     script = "\n".join(lines)
     round_id = f"round-{round_number}-{_stable_int(script) % 100000:05d}"
+    read_aloud = [
+        {"id": "setup", "label": "Setup", "body": opener},
+        {"id": "evidence", "label": "Evidence", "body": evidence},
+        {"id": "escalation", "label": "Escalation", "body": escalation},
+        {"id": "callback", "label": "Callback", "body": callback_line},
+        {"id": "rule", "label": "House Rule", "body": house_rule},
+        {"id": "action", "label": "Table Action", "body": table_action},
+        {"id": "vote", "label": "Vote Prompt", "body": decision},
+        {"id": "sting", "label": "Closing Sting", "body": sting},
+        {"id": "full", "label": "Full Script", "body": script},
+    ]
     return {
         "id": round_id,
         "round_number": round_number,
@@ -382,6 +396,7 @@ def generate_round(state: dict[str, Any], options: dict[str, Any] | None = None)
         "table_action": table_action,
         "vote_prompt": decision,
         "closing_sting": sting,
+        "read_aloud": read_aloud,
         "prime": prime,
         "trace": trace,
         "drift": drift,
@@ -394,20 +409,33 @@ def generate_round(state: dict[str, Any], options: dict[str, Any] | None = None)
 def generate_finale(state: dict[str, Any]) -> dict[str, Any]:
     scores = state.get("scores") or {}
     players = _items(state.get("players"), ["Nobody"])
-    winner = max(players, key=lambda name: int(scores.get(name, 0)))
+    contenders = list(players)
+    for name in SPECIAL_SCORE_LABELS:
+        if int(scores.get(name, 0)) > 0:
+            contenders.append(name)
+    winner = max(contenders, key=lambda name: int(scores.get(name, 0)))
     low_score = min(int(scores.get(name, 0)) for name in players)
     cursed = [name for name in players if int(scores.get(name, 0)) == low_score]
     rng = _rng_from_state(state, "finale", len(state.get("history") or []))
     relic = rng.choice(_items((state.get("ingredients") or {}).get("relics"), ["The Object"]))
     law = rng.choice(_items((state.get("ingredients") or {}).get("rules"), ["The winner must explain nothing."]))
-    title = f"{winner}, Keeper of {relic}"
-    prophecy = f"From this day, {winner} may interrupt any argument by pointing at {relic}."
+    if winner == "The House":
+        title = f"The House Wins {relic} In The Divorce"
+        prophecy = f"From this day, The House may interrupt any argument by creaking at {relic}."
+    elif winner == "The Relic":
+        title = f"{relic}, Object Of The Night"
+        prophecy = f"From this day, {relic} is allowed one dramatic silence per argument."
+    else:
+        title = f"{winner}, Keeper of {relic}"
+        prophecy = f"From this day, {winner} may interrupt any argument by pointing at {relic}."
     curse = f"{', '.join(cursed)} must keep the official minutes until someone invents a worse system."
+    scoreboard = ", ".join(f"{name}: {int(scores.get(name, 0))}" for name in contenders)
     script = "\n".join([
         title.upper(),
         "",
         f"Winner: {winner}",
         f"Final Relic: {relic}",
+        f"Final Damage: {scoreboard}",
         "",
         prophecy,
         curse,
@@ -422,6 +450,7 @@ def generate_finale(state: dict[str, Any]) -> dict[str, Any]:
         "prophecy": prophecy,
         "curse": curse,
         "law": law,
+        "scoreboard": scoreboard,
         "script": script,
     }
 
@@ -536,6 +565,36 @@ def _escalation(
 def _decision(rng: random.Random, collision: str, player: str, other: str, relic: str, house_rule: str) -> str:
     template = rng.choice(VOTE_PROMPTS.get(collision, VOTE_PROMPTS["public_vote"]))
     return _format(template, {"player": player, "other": other, "relic": relic, "house_rule": house_rule})
+
+
+def _duel_decision(rng: random.Random, collision: str, player: str, other: str, relic: str) -> str:
+    templates = {
+        "accusation": [
+            "Duel ruling: did {player} survive the accusation, did {other} make the case, or did {relic} clearly win?",
+            "Duel ruling: point to the survivor, the accuser, The House, or the object that caused all this.",
+        ],
+        "new_rule": [
+            "Duel ruling: does the new law reward {player}, {other}, The House, or {relic}?",
+            "Duel ruling: award the point to whoever must enforce this rule without blinking.",
+        ],
+        "betrayal": [
+            "Duel ruling: who was betrayed harder, {player}, {other}, The House, or common sense?",
+            "Duel ruling: compensation may go to the accused, the accuser, Everyone, or The House itself.",
+        ],
+        "committee": [
+            "Duel ruling: appoint {player}, {other}, The House, or {relic} as chair of the pointless committee.",
+            "Duel ruling: the committee point can go to a person, the room, or the object causing proceedings.",
+        ],
+        "confession": [
+            "Duel ruling: who accidentally confessed, who heard it best, or did The House force the moment?",
+            "Duel ruling: reward the confession, the witness, The House, or the object with confession lighting.",
+        ],
+        "public_vote": [
+            "Duel ruling: pick the accused, the accuser, Everyone, The House, or The Relic.",
+            "Duel ruling: this is not about fairness. It is about which option makes the room laugh again.",
+        ],
+    }
+    return _format(rng.choice(templates.get(collision, templates["public_vote"])), {"player": player, "other": other, "relic": relic})
 
 
 def _callback_target(

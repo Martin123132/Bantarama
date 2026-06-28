@@ -30,7 +30,12 @@ python -m house_rules_app.app --doctor
 - Press **Demo Game**.
 - Open **Packs** and load one built-in pack.
 - Start a round.
-- Vote for a player.
+- Use read-aloud mode to step through at least three beats.
+- Use a reaction button and confirm the weirdness changes or the round
+  regenerates.
+- Vote for a player in a 3+ player game.
+- Run a two-player game and confirm duel voting offers the accused, accuser,
+  Everyone, The House, and The Relic.
 - Open **Scores**.
 - Export TXT.
 - Export HTML.

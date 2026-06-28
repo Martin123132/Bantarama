@@ -29,6 +29,18 @@
   can be judged without API calls.
 - Add release prep docs and a clean ZIP script before wider tester sharing.
 
+## V0.4.1 Trial Patch
+
+- Make two-player games feel intentional with duel voting instead of awkward
+  "pick the winner" scoring.
+- Let The House and The Relic take points when the funniest answer is not a
+  player.
+- Add read-aloud beat controls so the host can reveal a round one section at a
+  time.
+- Add local reaction buttons for quick playtest tuning: too normal, too much,
+  again but harsher, and this energy works.
+- Keep the patch local-first: no telemetry, no accounts, no API calls.
+
 ## D-Drive Development Setup
 
 Use this before checks or manual browser runs when you want runtime output away

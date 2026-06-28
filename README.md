@@ -30,6 +30,13 @@ the big obvious button. That is the whole vibe.
 
 - **Traffic-light guidance**: red means add this first, amber means playable,
   green means strong table fuel.
+- **Two-player duel rulings**: the vote page changes when only two people are
+  playing, so the point can go to the accused, the accuser, Everyone, The House,
+  or The Relic.
+- **Read-aloud mode**: step through Setup, Evidence, Escalation, Callback, Rule,
+  Action, Vote Prompt, and Sting one beat at a time.
+- **Reaction buttons**: nudge the next round weirder, calmer, or regenerate the
+  current ruling harsher without touching any API.
 - **Separate pages** for players, packs, ingredients, setup, rounds, voting, and
   scores, so the host is not staring at one giant control panel.
 - **Built-in packs** for Family Chaos, Pub Table, Office Nonsense, and Tabletop

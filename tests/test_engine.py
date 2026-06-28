@@ -29,6 +29,14 @@ class BantaramaEngineTests(unittest.TestCase):
         self.assertEqual(len(round_data["trace"]), 7)
         self.assertTrue(round_data["callback"])
         self.assertTrue(round_data["table_action"])
+        self.assertEqual(round_data["read_aloud"][0]["id"], "setup")
+        self.assertEqual(round_data["read_aloud"][-1]["id"], "full")
+
+    def test_two_player_round_gets_duel_prompt(self) -> None:
+        self.state["players"] = ["Martin", "Newton"]
+        round_data = generate_round(self.state, {"round_number": 3, "mode": "House Rules"})
+        self.assertIn("Duel ruling:", round_data["vote_prompt"])
+        self.assertIn("Duel ruling:", round_data["script"])
 
     def test_prime_trace_always_seven_steps(self) -> None:
         self.assertEqual(len(prime_trace(3, 17, 62)), 7)
@@ -44,6 +52,12 @@ class BantaramaEngineTests(unittest.TestCase):
         finale = generate_finale(self.state)
         self.assertEqual(finale["winner"], "Martin")
         self.assertIn("Final House Law", finale["script"])
+
+    def test_finale_can_award_the_house(self) -> None:
+        self.state["scores"] = {"Martin": 1, "Newton": 1, "The House": 3}
+        finale = generate_finale(self.state)
+        self.assertEqual(finale["winner"], "The House")
+        self.assertIn("The House", finale["script"])
 
     def test_demo_cases_render_valid_scripts(self) -> None:
         for case in DEMO_CASES:

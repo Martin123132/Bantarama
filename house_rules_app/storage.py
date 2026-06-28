@@ -14,6 +14,7 @@ from .engine import generate_finale, round_to_html, round_to_text
 
 APP_NAME = "Bantarama"
 PACK_KEYS = ("phrases", "relics", "places", "rules")
+SPECIAL_SCORE_LABELS = ("The House", "The Relic")
 
 BUILTIN_PACKS: list[dict[str, Any]] = [
     {
@@ -166,8 +167,8 @@ def add_round(round_data: dict[str, Any], replace_round_id: str | None = None) -
 def award_round(round_id: str, winner: str, points: int = 1) -> dict[str, Any]:
     state = load_state()
     players = [str(player) for player in state.get("players") or []]
-    if winner not in players and winner != "Everyone":
-        raise ValueError("Winner must be a current player or Everyone.")
+    if winner not in players and winner != "Everyone" and winner not in SPECIAL_SCORE_LABELS:
+        raise ValueError("Winner must be a current player, Everyone, The House, or The Relic.")
     scores = dict(state.get("scores") or {})
     if winner == "Everyone":
         for player in players:

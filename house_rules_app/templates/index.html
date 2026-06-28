@@ -153,7 +153,23 @@
             <p class="eyebrow" id="roundKicker">Round</p>
             <h2 id="roundTitle">No round yet</h2>
           </div>
+          <div class="read-aloud-panel" id="readAloudPanel" hidden>
+            <div>
+              <strong>Read-aloud mode</strong>
+              <p>Step through the round one beat at a time.</p>
+            </div>
+            <div class="read-beats" id="readBeats"></div>
+          </div>
           <article class="round-script" id="roundScript">Start a round when the lights say ready.</article>
+          <div class="reaction-panel" id="reactionPanel" hidden>
+            <strong>Tune the next one</strong>
+            <div class="reaction-actions">
+              <button data-reaction="more">Too Normal</button>
+              <button data-reaction="less">Too Much</button>
+              <button data-reaction="harsher">Again But Harsher</button>
+              <button data-reaction="steady">This Energy Works</button>
+            </div>
+          </div>
           <details class="trace-box">
             <summary>Trace</summary>
             <div id="traceOutput"></div>
@@ -167,12 +183,12 @@
         <section class="page" id="page-vote">
           <div class="page-head">
             <p class="eyebrow">Vote</p>
-            <h2>Who gets the point?</h2>
+            <h2 id="voteTitle">Who gets the point?</h2>
+            <p class="page-hint" id="voteHint"></p>
           </div>
           <div class="vote-grid" id="voteGrid"></div>
           <div class="page-actions">
             <button id="voteBackButton">Back</button>
-            <button id="everyoneButton">Everyone</button>
           </div>
         </section>
 

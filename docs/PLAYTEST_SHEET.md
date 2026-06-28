@@ -26,6 +26,10 @@ Copy this once per same-room test.
 - Did anything feel too technical:
 - Did export show a friendly saved message:
 - Did Open Exports Folder make sense:
+- If there were two players, did duel voting feel natural:
+- Did The House or The Relic help when neither player obviously won:
+- Did the read-aloud beat buttons make hosting easier:
+- Did reaction buttons improve the next round:
 
 ## Round Notes
 
@@ -37,6 +41,8 @@ Mode:
 Best line:
 Did someone read it out loud:
 Did the vote make sense:
+Did a non-player option win:
+Reaction button used:
 Did the table action help:
 Laugh score 0-5:
 Fix:

@@ -40,6 +40,8 @@ class BantaramaAppSmokeTests(unittest.TestCase):
                 self.assertTrue(round_data["ok"])
                 self.assertIn("script", round_data["round"])
                 self.assertIn("WHY THIS HAPPENED", round_data["round"]["script"])
+                awarded = self._post_json(url + "/api/award", {"round_id": round_data["round"]["id"], "winner": "The House"})
+                self.assertEqual(awarded["state"]["scores"]["The House"], 1)
             finally:
                 proc.terminate()
                 try:

@@ -37,12 +37,14 @@ const demoIngredients = {
     "The host may demand a replay if the room points at them.",
   ],
 };
+const specialScoreLabels = ["The House", "The Relic"];
 
 let state = null;
 let ready = null;
 let currentPage = "start";
 let currentIngredient = "phrases";
 let currentRound = null;
+let currentReadBeat = "setup";
 let lastExport = null;
 let packs = [];
 let exportInProgress = false;
@@ -200,9 +202,11 @@ function renderSetup() {
 function renderScores() {
   const players = state.players || [];
   const scores = state.scores || {};
-  el("scoreboard").innerHTML = players.length
-    ? players
-        .map((name) => `<div class="score-card"><span>${escapeHtml(name)}</span><strong>${scores[name] || 0}</strong></div>`)
+  const specialScores = specialScoreLabels.filter((name) => Number(scores[name] || 0) > 0);
+  const scoreNames = [...players, ...specialScores];
+  el("scoreboard").innerHTML = scoreNames.length
+    ? scoreNames
+        .map((name) => `<div class="score-card ${specialScoreLabels.includes(name) ? "special-score" : ""}"><span>${escapeHtml(name)}</span><strong>${scores[name] || 0}</strong></div>`)
         .join("")
     : `<div class="score-card"><span>No players yet</span><strong>0</strong></div>`;
 }
@@ -251,10 +255,12 @@ function renderHostGuide() {
       ? ["green", "Start the round", "Pick a mode, set weirdness, then press Start Round and read the result out loud."]
       : [ready.overall || "red", "Follow the red light", ready.next_step || "Add what is missing before the round starts."],
     round: currentRound
-      ? ["green", "Read then vote", "Read the setup, evidence, callback, and table action. Then send everyone to Vote."]
+      ? ["green", "Read then vote", "Use the beat buttons to read it out loud, then send everyone to Vote."]
       : ["amber", "No round yet", "Go back to Setup when the lights are ready."],
     vote: currentRound
-      ? ["green", "Award the point", "Pick the player who deserves the point, or Everyone if the room was equally responsible."]
+      ? players.length === 2
+        ? ["green", "Duel ruling", "Pick how the ruling lands: accused, accuser, Everyone, The House, or The Relic."]
+        : ["green", "Award the point", "Pick the player who deserves the point, or let The House take the blame."]
       : ["amber", "Vote after a round", "Generate a round first, then come back here."],
     scoreboard: history.length
       ? ["amber", "Keep or close", "Start another round, export the evidence, or finish with the Finale."]
@@ -270,9 +276,10 @@ function renderHostGuide() {
 
 function renderRound(round) {
   currentRound = round;
+  currentReadBeat = "setup";
   el("roundKicker").textContent = `Round ${round.round_number} | ${round.mode}`;
   el("roundTitle").textContent = round.title;
-  el("roundScript").textContent = round.script;
+  renderReadAloud(round);
   el("traceOutput").innerHTML = `
     <p>Prime field: Z${round.prime}</p>
     <p>Trace: ${round.trace.join(" -> ")}</p>
@@ -283,10 +290,79 @@ function renderRound(round) {
   setPage("round");
 }
 
+function renderReadAloud(round) {
+  const beats = getRoundBeats(round);
+  el("readAloudPanel").hidden = false;
+  el("reactionPanel").hidden = false;
+  el("readBeats").innerHTML = beats
+    .map((beat) => `<button class="beat-button" data-read-beat="${escapeHtml(beat.id)}">${escapeHtml(beat.label)}</button>`)
+    .join("");
+  if (!beats.some((beat) => beat.id === currentReadBeat)) {
+    currentReadBeat = "setup";
+  }
+  setReadBeat(currentReadBeat);
+}
+
+function getRoundBeats(round) {
+  if (Array.isArray(round.read_aloud) && round.read_aloud.length) {
+    return round.read_aloud;
+  }
+  return [
+    { id: "setup", label: "Setup", body: round.setup || "" },
+    { id: "evidence", label: "Evidence", body: round.evidence || "" },
+    { id: "escalation", label: "Escalation", body: round.escalation || "" },
+    { id: "callback", label: "Callback", body: round.callback_line || "" },
+    { id: "rule", label: "House Rule", body: round.house_rule || "" },
+    { id: "action", label: "Table Action", body: round.table_action || "" },
+    { id: "vote", label: "Vote Prompt", body: round.vote_prompt || "" },
+    { id: "sting", label: "Closing Sting", body: round.closing_sting || "" },
+    { id: "full", label: "Full Script", body: round.script || "" },
+  ];
+}
+
+function setReadBeat(beatId) {
+  if (!currentRound) return;
+  currentReadBeat = beatId;
+  const beats = getRoundBeats(currentRound);
+  const beat = beats.find((item) => item.id === beatId) || beats[0];
+  document.querySelectorAll(".beat-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.readBeat === beat.id);
+  });
+  const body = beat.id === "full" ? beat.body : `${beat.label.toUpperCase()}\n\n${beat.body}`;
+  el("roundScript").textContent = body || currentRound.script || "";
+}
+
 function renderVoteGrid() {
   const players = state.players || [];
-  el("voteGrid").innerHTML = players
-    .map((name) => `<button data-vote="${escapeHtml(name)}"><strong>${escapeHtml(name)}</strong><br><span>Award 1 point</span></button>`)
+  if (!currentRound) {
+    el("voteTitle").textContent = "Who gets the point?";
+    el("voteHint").textContent = "Generate a round first.";
+    el("voteGrid").innerHTML = "";
+    return;
+  }
+  const duel = players.length === 2;
+  const accused = currentRound.accused || players[0] || "The accused";
+  const accuser = (currentRound.supporting_cast || []).find((name) => name !== accused) || players.find((name) => name !== accused) || players[1] || "The accuser";
+  const relic = currentRound.relic || "the object";
+  const options = duel
+    ? [
+        { winner: accused, title: `${accused} survives`, detail: "The accused takes the point for living through it." },
+        { winner: accuser, title: `${accuser} made the case`, detail: "The accuser takes the point for making it stick." },
+        { winner: "Everyone", title: "Everyone was responsible", detail: "Both players get dragged into the ruling." },
+        { winner: "The House", title: "The House takes it", detail: "Nobody wins. The room itself gets the point." },
+        { winner: "The Relic", title: "The Relic wins", detail: `${relic} was clearly the main character.` },
+      ]
+    : [
+        ...players.map((name) => ({ winner: name, title: name, detail: "Award 1 point" })),
+        { winner: "Everyone", title: "Everyone", detail: "The whole table was equally guilty." },
+        { winner: "The House", title: "The House", detail: "The room gets the point when nobody deserves it." },
+      ];
+  el("voteTitle").textContent = duel ? "How does the ruling land?" : "Who gets the point?";
+  el("voteHint").textContent = duel
+    ? "Two-player games are a duel. Pick the funniest landing, not the fairest winner."
+    : "Award the point, or hand it to The House when the room itself caused the damage.";
+  el("voteGrid").innerHTML = options
+    .map((option) => `<button data-vote="${escapeHtml(option.winner)}"><strong>${escapeHtml(option.title)}</strong><br><span>${escapeHtml(option.detail)}</span></button>`)
     .join("");
 }
 
@@ -324,6 +400,26 @@ async function award(winner) {
   ready = data.readiness;
   renderAll();
   setPage("scoreboard");
+}
+
+async function reactToRound(kind) {
+  if (!currentRound) return;
+  const settings = state.settings || {};
+  const current = Number(settings.weirdness || currentRound.weirdness || 62);
+  if (kind === "steady") {
+    setMessage("Keeping this energy for the next round.");
+    return;
+  }
+  const next = Math.max(0, Math.min(100, current + (kind === "less" ? -8 : kind === "harsher" ? 12 : 8)));
+  state.settings = { ...settings, weirdness: next };
+  syncControls();
+  if (kind === "harsher") {
+    setMessage(`Regenerating this ruling at weirdness ${next}.`);
+    await startRound(true);
+    return;
+  }
+  await saveState();
+  setMessage(`Next round weirdness set to ${next}.`);
 }
 
 async function showFinale() {
@@ -441,6 +537,8 @@ document.addEventListener("click", async (event) => {
     renderIngredients();
   }
   if (target.dataset.applyPack) await applyPack(target.dataset.applyPack);
+  if (target.dataset.readBeat) setReadBeat(target.dataset.readBeat);
+  if (target.dataset.reaction) await reactToRound(target.dataset.reaction).catch((error) => setMessage(error.message));
   if (target.dataset.vote) await award(target.dataset.vote);
 });
 
@@ -493,7 +591,6 @@ el("startRoundButton").addEventListener("click", () => startRound(false).catch((
 el("regenerateRoundButton").addEventListener("click", () => startRound(true).catch((error) => setMessage(error.message)));
 el("goVoteButton").addEventListener("click", () => setPage("vote"));
 el("voteBackButton").addEventListener("click", () => setPage("round"));
-el("everyoneButton").addEventListener("click", () => award("Everyone"));
 el("nextRoundButton").addEventListener("click", () => setPage("setup"));
 el("finaleButton").addEventListener("click", () => showFinale());
 el("finaleScoresButton").addEventListener("click", () => setPage("scoreboard"));
