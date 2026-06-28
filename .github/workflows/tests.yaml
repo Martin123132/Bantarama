@@ -10,8 +10,8 @@ jobs:
     runs-on: windows-latest
     env:
       PYTHONDONTWRITEBYTECODE: "1"
-      HOUSE_RULES_HOME: ${{ runner.temp }}\HouseRulesData
-      HOUSE_RULES_DISABLE_OPEN: "1"
+      BANTARAMA_HOME: ${{ runner.temp }}\BantaramaData
+      BANTARAMA_DISABLE_OPEN: "1"
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
