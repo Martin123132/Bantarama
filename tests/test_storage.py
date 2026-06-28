@@ -11,6 +11,12 @@ class BantaramaStorageTests(unittest.TestCase):
     def test_storage_uses_override_and_exports(self) -> None:
         old_home = os.environ.get("BANTARAMA_HOME")
         with tempfile.TemporaryDirectory(dir="D:\\Temp" if Path("D:\\Temp").exists() else None) as tmp:
+            tmp_root = Path(tmp).resolve()
+
+            def assert_inside_tmp(path: str | Path) -> None:
+                resolved = Path(path).resolve()
+                self.assertTrue(resolved == tmp_root or tmp_root in resolved.parents, f"{resolved} is not inside {tmp_root}")
+
             os.environ["BANTARAMA_HOME"] = tmp
             try:
                 from house_rules_app import storage
@@ -19,7 +25,7 @@ class BantaramaStorageTests(unittest.TestCase):
                 state["players"] = ["A", "B"]
                 saved = storage.save_state(state)
                 self.assertEqual(saved["players"], ["A", "B"])
-                self.assertTrue(str(storage.user_state_path()).startswith(tmp))
+                assert_inside_tmp(storage.user_state_path())
 
                 round_data = {
                     "id": "round-test",
@@ -32,12 +38,12 @@ class BantaramaStorageTests(unittest.TestCase):
                 storage.award_round("round-new", "A")
                 exported = storage.export_game("txt")
                 self.assertTrue(Path(exported["path"]).exists())
-                self.assertTrue(str(exported["path"]).startswith(tmp))
+                assert_inside_tmp(exported["path"])
 
                 with mock.patch.object(storage, "_launch_folder", return_value=True) as launcher:
                     opened = storage.open_exports_folder()
                 self.assertTrue(opened["opened"])
-                self.assertTrue(str(opened["path"]).startswith(tmp))
+                assert_inside_tmp(opened["path"])
                 self.assertEqual(Path(opened["path"]).name, "exports")
                 launcher.assert_called_once()
 
