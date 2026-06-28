@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "game_name": "Bantarama",
+  "players": [],
+  "settings": {
+    "round_count": 7,
+    "tone": "House Rules",
+    "weirdness": 62
+  },
+  "ingredients": {
+    "phrases": [
+      "that is legally not a sandwich",
+      "minutes were taken by the kettle",
+      "the prophecy was laminated",
+      "nobody check the cupboard",
+      "this is why we need a referee",
+      "it counts if everyone panics"
+    ],
+    "relics": [
+      "The Remote of Final Authority",
+      "A Mug With No Allegiance",
+      "The Laminated Biscuit Law",
+      "A Damp Five-a-Side Bib",
+      "The Emergency Chair",
+      "A Spoon That Knows Too Much"
+    ],
+    "places": [
+      "the kitchen tribunal",
+      "under the stairs",
+      "the suspiciously formal sofa",
+      "the five-a-side pitch",
+      "the landing where rules become law",
+      "the cupboard of public record"
+    ],
+    "rules": [
+      "Anyone holding the relic must speak first and regret it second.",
+      "A phrase repeated three times becomes house law.",
+      "The accused may blame the furniture once.",
+      "Evidence presented by a snack is admissible.",
+      "If the room goes quiet, the weirdest explanation wins.",
+      "A draw is settled by inventing a smaller, worse rule."
+    ]
+  },
+  "scores": {},
+  "history": []
+}

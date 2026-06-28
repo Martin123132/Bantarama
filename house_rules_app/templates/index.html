@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bantarama</title>
+    <link rel="icon" href="/static/mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-row">
+          <img src="/static/mark.svg" alt="" class="brand-mark" />
+          <div>
+            <h1>Bantarama</h1>
+            <p class="tagline">Same-room chaos, generated locally.</p>
+          </div>
+        </div>
+        <div class="status-pill" id="doctorStatus">Local only</div>
+      </header>
+
+      <nav class="step-nav" aria-label="Game steps">
+        <button class="step active" data-page="start">Start</button>
+        <button class="step" data-page="players">Players</button>
+        <button class="step" data-page="packs">Packs</button>
+        <button class="step" data-page="ingredients">Ingredients</button>
+        <button class="step" data-page="setup">Setup</button>
+        <button class="step" data-page="round">Round</button>
+        <button class="step" data-page="scoreboard">Scores</button>
+      </nav>
+
+      <div class="readiness-strip" id="readinessStrip"></div>
+
+      <aside class="host-guide" id="hostGuide" aria-live="polite">
+        <i class="dot amber" id="hostGuideDot"></i>
+        <div>
+          <strong id="hostGuideTitle">Next best action</strong>
+          <p id="hostGuideText">Follow the lights, then start a round.</p>
+        </div>
+      </aside>
+
+      <main>
+        <section class="page active" id="page-start">
+          <div class="page-head">
+            <p class="eyebrow">Local party engine</p>
+            <h2>The room writes the nonsense. The game makes it official.</h2>
+          </div>
+          <div class="start-actions">
+            <button class="primary big" id="goPlayersButton">New Game</button>
+            <button id="demoGameButton">Demo Game</button>
+            <button id="continueButton">Continue</button>
+          </div>
+          <div class="traffic-legend" aria-label="Readiness guide">
+            <span><i class="dot red"></i> Add this first</span>
+            <span><i class="dot amber"></i> Playable</span>
+            <span><i class="dot green"></i> Strong table fuel</span>
+          </div>
+          <div class="score-preview" id="startPreview"></div>
+        </section>
+
+        <section class="page" id="page-players">
+          <div class="page-head">
+            <p class="eyebrow">Step 1</p>
+            <h2>Players</h2>
+          </div>
+          <form class="add-row" id="playerForm">
+            <input id="playerInput" autocomplete="off" placeholder="Player name" />
+            <button class="primary" type="submit">Add Player</button>
+          </form>
+          <div class="item-list" id="playersList"></div>
+          <div class="page-actions">
+            <button id="playersBackButton">Back</button>
+            <button class="primary" id="playersNextButton">Next</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-packs">
+          <div class="page-head">
+            <p class="eyebrow">Step 2</p>
+            <h2>Pack Library</h2>
+          </div>
+          <div class="pack-grid" id="packGrid"></div>
+          <form class="add-row" id="packForm">
+            <input id="packNameInput" autocomplete="off" placeholder="Save current table as a pack" />
+            <button class="primary" type="submit">Save Pack</button>
+          </form>
+          <div class="page-actions">
+            <button id="packsBackButton">Back</button>
+            <button class="primary" id="packsNextButton">Tweak Ingredients</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-ingredients">
+          <div class="page-head">
+            <p class="eyebrow">Step 3</p>
+            <h2>Chaos Ingredients</h2>
+          </div>
+          <div class="ingredient-tabs" role="tablist">
+            <button class="tab active" data-ingredient="phrases">Phrases</button>
+            <button class="tab" data-ingredient="relics">Objects</button>
+            <button class="tab" data-ingredient="places">Places</button>
+            <button class="tab" data-ingredient="rules">Rules</button>
+          </div>
+          <form class="add-row" id="ingredientForm">
+            <input id="ingredientInput" autocomplete="off" placeholder="Add phrase" />
+            <button class="primary" type="submit">Add</button>
+          </form>
+          <div class="item-list" id="ingredientsList"></div>
+          <div class="page-actions">
+            <button id="ingredientsBackButton">Back</button>
+            <button class="primary" id="ingredientsNextButton">Next</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-setup">
+          <div class="page-head">
+            <p class="eyebrow">Step 4</p>
+            <h2>Game Setup</h2>
+          </div>
+          <div class="setup-grid">
+            <label>
+              Round Type
+              <select id="toneSelect">
+                <option>House Rules</option>
+                <option>Cult Night</option>
+                <option>Five-a-Side Incident</option>
+                <option>Relic Trial</option>
+                <option>Under The Stairs</option>
+                <option>Chaos Council</option>
+                <option>Random</option>
+              </select>
+            </label>
+            <label>
+              Rounds
+              <input id="roundCountInput" type="number" min="3" max="15" value="7" />
+            </label>
+            <label>
+              Weirdness
+              <input id="weirdnessInput" type="range" min="0" max="100" value="62" />
+              <span id="weirdnessValue">62</span>
+            </label>
+          </div>
+          <div class="ready-callout" id="readyCallout"></div>
+          <div class="page-actions">
+            <button id="setupBackButton">Back</button>
+            <button class="primary big" id="startRoundButton">Start Round</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-round">
+          <div class="page-head">
+            <p class="eyebrow" id="roundKicker">Round</p>
+            <h2 id="roundTitle">No round yet</h2>
+          </div>
+          <article class="round-script" id="roundScript">Start a round when the lights say ready.</article>
+          <details class="trace-box">
+            <summary>Trace</summary>
+            <div id="traceOutput"></div>
+          </details>
+          <div class="page-actions">
+            <button id="regenerateRoundButton">Regenerate</button>
+            <button class="primary" id="goVoteButton">Vote</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-vote">
+          <div class="page-head">
+            <p class="eyebrow">Vote</p>
+            <h2>Who gets the point?</h2>
+          </div>
+          <div class="vote-grid" id="voteGrid"></div>
+          <div class="page-actions">
+            <button id="voteBackButton">Back</button>
+            <button id="everyoneButton">Everyone</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-scoreboard">
+          <div class="page-head">
+            <p class="eyebrow">Scoreboard</p>
+            <h2>Current damage</h2>
+          </div>
+          <div class="scoreboard" id="scoreboard"></div>
+          <div class="history-list" id="historyList"></div>
+          <div class="export-panel" id="exportPanel" hidden>
+            <div>
+              <strong>Last export saved</strong>
+              <p id="exportSummary">Your game is saved in the Bantarama exports folder.</p>
+              <code id="exportPath"></code>
+            </div>
+            <button id="openExportsButton">Open Exports Folder</button>
+          </div>
+          <div class="page-actions">
+            <button id="exportTxtButton">Export TXT</button>
+            <button id="exportHtmlButton">Export HTML</button>
+            <button class="primary" id="nextRoundButton">Next Round</button>
+            <button id="finaleButton">Finale</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-finale">
+          <div class="page-head">
+            <p class="eyebrow">Finale</p>
+            <h2 id="finaleTitle">Final House Law</h2>
+          </div>
+          <article class="round-script" id="finaleScript"></article>
+          <div class="page-actions">
+            <button id="finaleScoresButton">Scores</button>
+            <button class="primary" id="newGameButton">New Game</button>
+          </div>
+        </section>
+      </main>
+
+      <p class="message" id="message"></p>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
